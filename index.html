@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>DinoRace!</title>
+    <style>
+      html {
+        background-color: #222034;
+        background-image: url("public/html/bg.png");
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+      }
+      body {
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        }
+
+      canvas {
+        border: 3px solid white;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="game"></canvas>
+
+    <script src="https://unpkg.com/kaplay@3001.0.19/dist/kaplay.js"></script>
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>
