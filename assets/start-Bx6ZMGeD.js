@@ -1,0 +1,1 @@
+import{n as e,r as t}from"./debugmode-Baufc-Ox.js";export{e as p1die,t as p2die};

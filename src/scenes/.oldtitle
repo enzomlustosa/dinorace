@@ -1,0 +1,337 @@
+scene("title", () => {
+    const x_spawnlocation = 65
+    const y_spawnlocation = ch
+    const default_gravity = 900
+    let default_jump = 325
+    let p1ground = false
+    let p2ground = false
+
+    const floor = add([
+        rect(480, 30),
+        pos(0, 210),
+        area(),
+        color(255, 255, 255),
+        "floor",
+    ])
+
+    const p1 = add([
+        rect(20, 40),
+        pos(x_spawnlocation, y_spawnlocation),
+        color("#99e550"),
+        anchor("bot"),
+        area(),
+        "player1",
+        "player"
+    ])
+
+
+    const infotext = add([
+        text("PULE PARA PREPARAR\nAGAIXE PARA DESPREPARAR\n\n W: Pulo         |  Cima: Pulo       \nS: Agaixar    |  Baixo: Agaixar", {
+            font: "pixel",
+            size: 8,
+            align: "center"
+        }),
+        color("#ffffff"),
+        pos(175, 120),
+    ])
+
+    infotext.hidden = true
+
+    const countdowntext = add([
+        text("3", {
+            font: "bigpixel",
+            size: 48,
+            align: "right"
+        }),
+        color("#ffffff"),
+        pos((cw / 2) - 20, 120),
+    ])
+
+    const p1readytxt = add([
+        text("PREPARANDO", {
+            font: "pixel",
+            align: "center",
+            size: 16,
+        }),
+        color("#ba2335"),
+        pos(10, 220),
+        z(5),
+    ])
+
+    const p2readytxt = add([
+        text("PREPARANDO", {
+            font: "pixel",
+            align: "center",
+            size: 16,
+        }),
+        color("#ba2335"),
+        pos(cw - 120, 220),
+        z(5),
+    ])
+
+    const logo = add([
+        sprite("logo"),
+        pos(cw / 2, 55),
+        anchor("center"),
+        z(10),
+        opacity(1),
+        "logo",
+    ])
+
+    const fade = add([
+        sprite("fade"),
+        pos(0, 0),
+        anchor("topleft"),
+        z(9),
+        "fade",
+        opacity(0),
+    ])
+
+    const chao = add([
+        sprite("chaotitle"),
+        pos(cw / 2, 240),
+        anchor("bot"),
+        "chaotitle",
+    ])
+
+    const p2 = add([
+        rect(20, 40),
+        pos(cw - x_spawnlocation, y_spawnlocation),
+        color("#5b6ee1"),
+        anchor("bot"),
+        area(),
+        "player2",
+        "player"
+    ])
+
+
+    const p1pin = add([
+        sprite("p1pin"),
+        pos(cw / 2, ch / 2),
+        anchor("bot"),
+        "p1pin"
+    ])
+
+    const p2pin = add([
+        sprite("p2pin"),
+        pos(0, 0),
+        anchor("bot"),
+        "p2pin",
+    ])
+
+    onUpdate(() => {
+        p1pin.pos.x = p1.pos.x
+        p1pin.pos.y = p1.pos.y - 45
+        p2pin.pos.x = (p2.pos.x)
+        p2pin.pos.y = (p2.pos.y - 45)
+    })
+
+    //  STATE (FIXED) 
+    var countdown = false
+    let countdownend = false
+    let countdownnum = 3
+    let countdownId = 0
+
+    function startCountdown() {
+        if (countdownend) {
+            countdowntext.hidden = true
+            return
+        }
+        const myId = ++countdownId
+        countdowntext.textSize = 64
+        tween(64, 48, 0.4, (val) => { countdowntext.textSize = val }, easings.easeOutBack)
+        countdown = true
+        countdownnum = 3
+        countdowntext.hidden = false
+        countdowntext.text = String(countdownnum)
+        console.log(countdownnum)
+        wait(1, () => {
+            if ((!countdown || myId !== countdownId || !p1.ready || !p2.ready) && !countdownend) return
+            countdowntext.textSize = 64
+            tween(64, 48, 0.4, (val) => { countdowntext.textSize = val }, easings.easeOutBack)
+            countdownnum = 2
+            console.log(countdownnum)
+            countdowntext.text = String(countdownnum)
+
+            wait(1, () => {
+                if ((!countdown || myId !== countdownId || !p1.ready || !p2.ready) && !countdownend) return
+                countdowntext.textSize = 64
+                tween(64, 48, 0.4, (val) => { countdowntext.textSize = val }, easings.easeOutBack)
+                countdownnum = 1
+                console.log(countdownnum)
+                countdowntext.text = String(countdownnum)
+
+                wait(1, () => {
+                    if ((!countdown || myId !== countdownId || !p1.ready || !p2.ready) && !countdownend) return
+                    console.log("racestart!")
+                    countdowntext.hidden = true
+                    countdown = false
+                    countdownend = true
+                    // start race here
+                })
+            })
+        })
+    }
+
+    //  PLAYER 1 
+    p1.grounded = false
+    p1.crouched = false
+    p1.gravity = default_gravity
+    p1.vel = 0
+    p1.jump = default_jump
+    p1.ready = false
+
+    onCollide("player1", "floor", () => p1.grounded = true)
+    onCollideEnd("player1", "floor", () => p1.grounded = false)
+
+    onKeyDown("w", () => {
+        if (p1.grounded && !p1.crouched) {
+            p1.vel = -p1.jump
+            if (!p1.ready) p1.ready = true
+            p1.grounded = false
+        }
+    })
+
+    onKeyDown("s", () => {
+        p1.crouched = true
+        if (p1.ready) p1.ready = false
+    })
+
+    onKeyRelease("s", () => {
+        p1.crouched = false
+    })
+
+    onUpdate(() => {
+        p1.vel += p1.gravity * dt()
+        p1.pos.y += p1.vel * dt()
+
+        if (p1.pos.y > ch - 30) {
+            p1.pos.y = ch - 30
+            p1.vel = 0
+            p1.grounded = true
+        }
+
+        if (p1.crouched) {
+            p1.scale = vec2(1, 0.5)
+            p1.gravity = default_gravity * 8
+            p1.jump = 0
+        } else {
+            p1.scale = vec2(1, 1)
+            p1.gravity = default_gravity
+            p1.jump = default_jump
+        }
+
+        if (p1.ready) {
+            p1readytxt.color = rgb(153, 229, 80)
+            p1readytxt.text = "PRONTO!"
+        } else {
+            p1readytxt.color = rgb(186, 35, 53)
+            p1readytxt.text = "PREPARANDO"
+        }
+    })
+
+    //  PLAYER 2 
+    p2.grounded = false
+    p2.crouched = false
+    p2.gravity = default_gravity
+    p2.vel = 0
+    p2.jump = default_jump
+    p2.ready = false
+
+    onCollide("player2", "floor", () => p2.grounded = true)
+    onCollideEnd("player2", "floor", () => p2.grounded = false)
+
+    onKeyDown("up", () => {
+        if (p2.grounded && !p2.crouched) {
+            p2.vel = -p2.jump
+            if (!p2.ready) p2.ready = true
+        }
+    })
+
+    onKeyDown("down", () => {
+        p2.crouched = true
+        if (p2.ready) p2.ready = false
+    })
+
+    onKeyRelease("down", () => {
+        p2.crouched = false
+    })
+
+    onUpdate(() => {
+        p2.vel += p2.gravity * dt()
+        p2.pos.y += p2.vel * dt()
+
+        if (p2.pos.y > ch - 30) {
+            p2.pos.y = ch - 30
+            p2.vel = 0
+            p2.grounded = true
+        }
+
+        if (p2.crouched) {
+            p2.scale = vec2(1, 0.5)
+            p2.gravity = default_gravity * 8
+            p2.jump = 0
+        } else {
+            p2.scale = vec2(1, 1)
+            p2.gravity = default_gravity
+            p2.jump = default_jump
+        }
+
+        if (p2.ready) {
+            p2readytxt.color = rgb(153, 229, 80)
+            p2readytxt.text = "PRONTO!"
+        } else {
+            p2readytxt.color = rgb(186, 35, 53)
+            p2readytxt.text = "PREPARANDO"
+        }
+    })
+
+    onUpdate(() => {
+        if (p2.ready) { p2readytxt.pos.x = cw - 102 } else { p2readytxt.pos.x = cw - 120 }
+    })
+
+    onUpdate(() => {
+        if (p1.ready) { p1readytxt.pos.x = 32 } else { p1readytxt.pos.x = 10 }
+    })
+
+    // contagem
+    onUpdate(() => {
+        if (p1.ready && p2.ready && !countdownend) {
+            infotext.hidden = true
+
+            if (!countdown) {
+                startCountdown()
+            }
+
+        } else {
+            infotext.hidden = false
+            countdowntext.hidden = true
+
+            countdown = false
+            countdownnum = 3
+            countdownId++
+        }
+    })
+    let logomoved = false
+    let logotary = ch / 2
+    onUpdate(() => {
+        if (countdownend) {
+            infotext.hidden = true
+            p1readytxt.hidden = true
+            p2readytxt.hidden = true
+        }
+    })
+    onUpdate(() => {
+        if (countdownend) {
+            logo.pos.y = lerp(logo.pos.y, logotary, dt() * 4)
+            fade.opacity = lerp(fade.opacity, 1, dt() * 3)
+            wait(2, () => {
+                logo.opacity = lerp(logo.opacity, 0, dt() * 5)
+                wait(1, () => {
+                    console.log("next scene")
+                    go("start")
+                })
+            })
+        }
+    })
+})
